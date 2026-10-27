@@ -1,39 +1,54 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { Role } from '../../common/enums/role.enum.js';
 
 const toLowerTrim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
 
 export class RegisterDto {
-  @ApiProperty({ example: 'Ana Pérez' })
+  @ApiProperty({ example: 'Carlos Gómez' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   name: string;
 
-  @ApiProperty({ example: 'ana@mail.com' })
+  @ApiProperty({ example: 'carlos@fleetcore.com' })
   @Transform(toLowerTrim)
-  @IsEmail({}, { message: 'El email no es válido' })
+  @IsEmail({}, { message: 'El correo electrónico no es válido' })
   email: string;
 
-  @ApiProperty({ example: 'Clave1234' })
+  @ApiProperty({ example: 'Tech12345!' })
   @IsString()
-  @MinLength(8)
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @Matches(/^(?=.*[A-Z])(?=.*\d).+$/, {
     message: 'La contraseña necesita al menos una mayúscula y un número',
   })
   password: string;
+
+  @ApiPropertyOptional({ enum: Role, default: Role.TECHNICIAN })
+  @IsOptional()
+  @IsEnum(Role, { message: 'El rol debe ser ADMIN, TECHNICIAN o MANAGER' })
+  role?: Role;
 }
 
 export class LoginDto {
-  @ApiProperty({ example: 'ana@mail.com' })
+  @ApiProperty({ example: 'admin@fleetcore.com' })
   @Transform(toLowerTrim)
-  @IsEmail()
+  @IsEmail({}, { message: 'El correo electrónico no es válido' })
   email: string;
 
-  @ApiProperty({ example: 'Clave1234' })
+  @ApiProperty({ example: 'Admin12345!' })
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'La contraseña es requerida' })
   password: string;
 }

@@ -5,10 +5,15 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 
-describe('Auth (e2e)', () => {
+describe('Auth & Integrations (e2e)', () => {
   let app: INestApplication;
   let token: string;
-  const user = { name: 'Test', email: 'test@mail.com', password: 'Clave1234' };
+  const user = {
+    name: 'Técnico Prueba',
+    email: 'tecnico.prueba@fleetcore.com',
+    password: 'Clave1234!',
+    role: 'TECHNICIAN',
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -22,19 +27,19 @@ describe('Auth (e2e)', () => {
   });
 
   it('registra un usuario → 201', async () => {
-    const res = await request(app.getHttpServer()).post('/api/auth/register').send(user).expect(201);
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send(user)
+      .expect(201);
     expect(res.body.data.accessToken).toBeDefined();
     expect(res.body.data.user.password).toBeUndefined();
   });
 
   it('rechaza email duplicado → 409', () =>
-    request(app.getHttpServer()).post('/api/auth/register').send(user).expect(409));
-
-  it('rechaza campos extra como role → 400', () =>
     request(app.getHttpServer())
       .post('/api/auth/register')
-      .send({ ...user, email: 'otro@mail.com', role: 'admin' })
-      .expect(400));
+      .send(user)
+      .expect(409));
 
   it('hace login → 200 con token', async () => {
     const res = await request(app.getHttpServer())
@@ -53,9 +58,12 @@ describe('Auth (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200));
 
-  it('GET /api/users con rol user → 403', () =>
+  it('GET /api/integrations/fleet-status sin x-api-key → 401', () =>
+    request(app.getHttpServer()).get('/api/integrations/fleet-status').expect(401));
+
+  it('GET /api/integrations/fleet-status con x-api-key correcta → 200', () =>
     request(app.getHttpServer())
-      .get('/api/users')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403));
+      .get('/api/integrations/fleet-status')
+      .set('x-api-key', 'test-api-key-fleetcore-2026')
+      .expect(200));
 });

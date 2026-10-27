@@ -1,138 +1,162 @@
-# Proyecto Base NestJS 12 — Guía para Prueba de Desempeño
+# FleetCore API — Sistema de Gestión de Mantenimiento de Flota de Vehículos
 
-Plantilla base y robusta construida con **NestJS 12**, **TypeORM**, **PostgreSQL**, **Docker**, autenticación **JWT** con roles, validación con **Zod** y **class-validator**, y tests con **Vitest**.
-
----
-
-## 1. Stack Tecnológico
-
-- **Framework**: NestJS 12 (ESM, TypeScript strict mode).
-- **Base de Datos**: PostgreSQL 17 (vía Docker Compose) con TypeORM.
-- **Autenticación**: JWT con `@nestjs/jwt`, hashing seguro con `bcryptjs` y control de acceso basado en roles (RBAC).
-- **Validación y Configuración**: Zod para variables de entorno (`ConfigModule`), `class-validator` y `class-transformer` para DTOs.
-- **Documentación de API**: Swagger UI integrado en `/docs`.
-- **Testing**: Vitest (unitarios con mocks) y Vitest e2e (con Supertest).
-- **Seguridad**: `helmet`, CORS habilitado, `ValidationPipe` estricto con `whitelist: true` y `forbidNonWhitelisted: true`.
+> **Prueba de Desempeño – Módulo 6.2 NestJS**  
+> **Coder:** Kerin Barranco  
+> **Clan:** Backend Developers  
+> **Repositorio GitHub:** [https://github.com/Kerin0011/Prueba](https://github.com/Kerin0011/Prueba)
 
 ---
 
-## 2. Requisitos Previos
+## 1. Descripción del Caso de Uso
+
+La empresa de transporte **FleetCore** requiere un sistema robusto para administrar el ciclo de vida de los mantenimientos de su flota de vehículos. Esta solución elimina los registros manuales y hojas de cálculo mediante una API REST en **NestJS 12**, **TypeORM**, **PostgreSQL 17**, autenticación **JWT** con **Argon2**, validación mediante **Zod** y **class-validator**, control de acceso basado en roles (**RBAC**), integración externa protegida por **API Key**, y tests automatizados con **Vitest**.
+
+---
+
+## 2. Tecnologías Utilizadas
+
+- **Backend:** NestJS 12 (Arquitectura modular ESM con TypeScript modo estricto).
+- **Persistencia:** PostgreSQL 17 con TypeORM.
+- **Autenticación & Seguridad:**
+  - JWT con `@nestjs/jwt`.
+  - Hashing seguro de contraseñas con **Argon2** (`argon2id`).
+  - Guards globales (`JwtAuthGuard`, `RolesGuard`) y decoradores personalizados (`@Public()`, `@Roles()`, `@CurrentUser()`).
+  - Autenticación con cabecera `x-api-key` para sistemas externos (`ApiKeyGuard`).
+  - `helmet` y CORS configurados.
+- **Validación y Configuración:**
+  - Validación de `.env` en tiempo de arranque con **Zod** (`envSchema`).
+  - DTOs tipados y validados con `class-validator` y `class-transformer`.
+- **Documentación:** Swagger UI interactivo en `/docs`.
+- **Testing:** Vitest con cobertura de código (`npm run test:cov`).
+- **Contenedores:** Docker Compose con dos bases de datos (desarrollo y pruebas).
+
+---
+
+## 3. Requisitos Previos
 
 - **Node.js**: v24.15+ LTS (o Node 26)
-- **Docker Desktop**: En ejecución para los contenedores PostgreSQL
+- **Docker Desktop**: En ejecución para PostgreSQL
 - **Git**
 
 ---
 
-## 3. Instalación y Puesta en Marcha
+## 4. Instalación y Puesta en Marcha
 
-1. **Clonar el repositorio y entrar al proyecto**:
-   ```bash
-   git clone <url-del-repo>
-   cd simulacro
-   ```
-
-2. **Configurar variables de entorno**:
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Iniciar las bases de datos con Docker**:
-   ```bash
-   # Inicia db en puerto 5433 y db_test en puerto 5434
-   docker compose up -d db db_test
-   ```
-
-4. **Instalar dependencias**:
-   ```bash
-   npm install
-   ```
-
-5. **Iniciar en modo desarrollo**:
-   ```bash
-   npm run start:dev
-   ```
-
-La API estará disponible en: `http://localhost:3000/api`  
-Documentación Swagger en: `http://localhost:3000/docs`
-
----
-
-## 4. Documentación de la API (Swagger)
-
-Abre tu navegador en:
-```
-http://localhost:3000/docs
-```
-Incluye botón **Authorize** para probar endpoints protegidos usando el token JWT generado en el login.
-
----
-
-## 5. Credenciales Iniciales (Seed Admin)
-
-Al arrancar la aplicación por primera vez, `SeedService` registra automáticamente el usuario administrador si no existe:
-
-- **Email**: `admin@prueba.com`
-- **Contraseña**: `Admin12345`
-- **Rol**: `admin`
-
----
-
-## 6. Pruebas Automatizadas (Vitest)
-
-- **Pruebas unitarias**:
-  ```bash
-  npm run test
-  ```
-- **Pruebas unitarias en modo escucha (watch)**:
-  ```bash
-  npm run test:watch
-  ```
-- **Cobertura de código**:
-  ```bash
-  npm run test:cov
-  ```
-- **Pruebas de integración E2E** (requiere contenedor `db_test` corriendo en puerto 5434):
-  ```bash
-  npm run test:e2e
-  ```
-
----
-
-## 7. Estructura de Carpetas y Decisiones de Arquitectura
-
-```text
-src/
-  common/
-    decorators/     # @Public(), @Roles(), @CurrentUser(), @Auth()
-    dto/            # pagination.dto.ts
-    entities/       # base.entity.ts (UUID, createdAt, updatedAt, deletedAt)
-    enums/          # role.enum.ts (ADMIN, USER)
-    filters/        # all-exceptions.filter.ts (manejo unificado de excepciones y Postgres)
-    guards/         # jwt-auth.guard.ts (global), roles.guard.ts (global)
-    interceptors/   # transform.interceptor.ts (formato unificado { success, statusCode, data, timestamp })
-    interfaces/     # jwt-payload.interface.ts
-    middleware/     # logger.middleware.ts (registro HTTP con {*splat})
-    pipes/          # zod-validation.pipe.ts
-  config/           # env.schema.ts (validación estricta de .env con Zod)
-  database/         # seed.service.ts y database.module.ts
-  auth/             # Módulo de autenticación (register, login, JWT)
-  users/            # Módulo de usuarios (entidad User, perfil 'me', administración)
-  products/         # Módulo CRUD plantilla (relación con User, paginación, búsqueda, control de dueño)
-  app.module.ts     # Módulo raíz con orquestación global
-  app.setup.ts      # Configuración desacoplada reutilizable para app y tests e2e
-  main.ts           # Punto de entrada bootstrap
-test/
-  auth.e2e-spec.ts  # Pruebas e2e completas de autenticación
+### Paso 1: Clonar el repositorio
+```bash
+git clone https://github.com/Kerin0011/Prueba.git
+cd Prueba
 ```
 
-### Decisiones de Diseño Clave
+### Paso 2: Configurar variables de entorno
+```bash
+cp .env.example .env
+```
+*(El archivo `.env` ya incluye valores predeterminados para desarrollo).*
 
-1. **Guards Globales + `@Public()`**:
-   Todo endpoint requiere autenticación JWT por defecto mediante `JwtAuthGuard` y `RolesGuard` registrados como `APP_GUARD`. Los endpoints abiertos explícitamente usan `@Public()`.
-2. **Formato de Respuesta Uniforme**:
-   `TransformInterceptor` estandariza las respuestas exitosas y `AllExceptionsFilter` formatea errores con códigos HTTP adecuados (traduciendo errores de unicidad `23505` a `409 Conflict`).
-3. **Soft Delete**:
-   Todas las entidades heredan de `AppBaseEntity` con `@DeleteDateColumn`. Los registros no se borran físicamente sino que se marca `deleted_at`.
-4. **Módulo Plantilla `products`**:
-   Sirve como molde para crear rápidamente cualquier nueva entidad requerida en la prueba de desempeño (relación `ManyToOne`, validación de dueño o rol admin, transacción de stock, paginación con `findAndCount`).
+### Paso 3: Iniciar las bases de datos con Docker
+```bash
+docker compose up -d db db_test
+```
+- Base de datos principal (`db`): Puerto `5433` -> `prueba_db`
+- Base de datos de pruebas (`db_test`): Puerto `5434` -> `prueba_db_test`
+
+### Paso 4: Instalar dependencias
+```bash
+npm install
+```
+
+### Paso 5: Ejecutar el Seeder de datos iniciales
+Puedes poblar la base de datos ejecutando:
+```bash
+npm run seed
+```
+*(Nota: El seeder también se ejecuta automáticamente en el bootstrap de la app si los datos no existen).*
+
+### Paso 6: Iniciar la aplicación
+```bash
+npm run start:dev
+```
+
+- **API Base:** `http://localhost:3000/api`
+- **Documentación Swagger:** `http://localhost:3000/docs`
+
+---
+
+## 5. Credenciales de Prueba (Seed Data)
+
+El sistema viene poblado con usuarios, mecánicos, talleres y vehículos iniciales (idempotente):
+
+| Rol | Correo Electrónico | Contraseña | Descripción |
+|---|---|---|---|
+| **ADMIN** | `admin@fleetcore.com` | `Admin12345!` | Administrador con control total |
+| **TECHNICIAN** | `tech1@fleetcore.com` | `Tech12345!` | Técnico Carlos Gómez (vinculado a Mecánico 1) |
+| **TECHNICIAN** | `tech2@fleetcore.com` | `Tech12345!` | Técnico Jorge Rivas (vinculado a Mecánico 2) |
+
+### Clave de Integración Externa (API Key)
+- **Header:** `x-api-key: fleetcore-secret-api-key-2026`
+- **Endpoints:** `/api/integrations/fleet-status` y `/api/integrations/active-maintenances`
+
+### Datos Iniciales Poblados
+- **Mecánicos (3):**
+  - Carlos Gómez (`ACTIVE`, vinculado a `tech1@fleetcore.com`, Esp: Motores Diésel).
+  - Jorge Rivas (`ACTIVE`, vinculado a `tech2@fleetcore.com`, Esp: Frenos y Suspensión).
+  - Pedro Méndez (`INACTIVE`, Esp: Electricidad Automotriz).
+- **Talleres (2):**
+  - Taller Central FleetCore (`ACTIVE`).
+  - Taller Norte FleetCore (`INACTIVE`).
+- **Vehículos (4):**
+  - `AAA111` (Toyota Hilux, 45.000 km, `AVAILABLE`).
+  - `BBB222` (Kenworth T680, 120.000 km, `AVAILABLE`).
+  - `CCC333` (Chevrolet FVR, 85.000 km, `IN_MAINTENANCE` con mantenimiento `IN_PROGRESS`).
+  - `DDD444` (Volvo FH, 250.000 km, `INACTIVE`).
+- **Mantenimientos:**
+  - 1 en estado `IN_PROGRESS` para el vehículo `CCC333`.
+  - 1 en estado `COMPLETED` para el vehículo `AAA111` con información completa de cierre (historial).
+
+---
+
+## 6. Reglas de Negocio Implementadas
+
+1. **Gestión de Vehículos**:
+   - Placas únicas en mayúsculas.
+   - Estados: `AVAILABLE`, `IN_MAINTENANCE`, `INACTIVE`.
+   - Vehículos en estado `INACTIVE` no pueden ser asociados a nuevos mantenimientos.
+   - Búsqueda por UUID o por placa en el mismo endpoint (`/api/vehicles/:term`).
+2. **Gestión de Mecánicos y Concurrencia de Horarios**:
+   - Mecánicos inactivos no pueden ser asignados a mantenimientos.
+   - Un mecánico no puede tener dos mantenimientos activos (`SCHEDULED` o `IN_PROGRESS`) simultáneamente.
+3. **Gestión de Talleres**:
+   - Solo talleres en estado `ACTIVE` pueden recibir nuevos mantenimientos.
+4. **Ciclo de Vida del Mantenimiento y Transiciones**:
+   - Todo mantenimiento inicia en `SCHEDULED`.
+   - El kilometraje inicial del mantenimiento no puede ser inferior al actual del vehículo.
+   - Al pasar a `IN_PROGRESS`, el vehículo cambia automáticamente a `IN_MAINTENANCE`.
+   - Para pasar a `COMPLETED` es obligatorio registrar: `workDone`, `finalCost`, `completedDate` y `finalMileage` (mayor o igual al inicial).
+   - Al completarse, el vehículo pasa a `AVAILABLE` y su kilometraje se actualiza al `finalMileage`.
+   - Mantenimientos `COMPLETED` o `CANCELLED` no pueden regresar a ningún estado anterior.
+   - Si se cancela un mantenimiento en progreso, el vehículo regresa a `AVAILABLE`.
+
+---
+
+## 7. Pruebas Automatizadas (Vitest)
+
+Ejecuta las pruebas unitarias y de cobertura:
+
+```bash
+# Pruebas unitarias
+npm run test
+
+# Pruebas con reporte de cobertura (>70% de cobertura en servicios clave)
+npm run test:cov
+
+# Pruebas e2e (con base de datos de test en puerto 5434)
+npm run test:e2e
+```
+
+---
+
+## 8. Colección de Postman y Dump SQL
+
+- **Colección de Postman:** [`postman_collection.json`](file:///D:/simulacro/postman_collection.json) lista para importar con variables preconfiguradas y tests automáticos de extracción de token JWT.
+- **Dump de Base de Datos:** [`dump.sql`](file:///D:/simulacro/dump.sql) con la estructura completa de tablas, tipos enumerados, índices y datos iniciales en PostgreSQL.

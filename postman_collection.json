@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Prueba Base NestJS 12 API",
-    "description": "Colección completa para pruebas de desempeño NestJS 12 (Auth, Users, Products)",
+    "name": "FleetCore API — Gestión de Mantenimiento de Flota",
+    "description": "Colección completa de endpoints para FleetCore (Auth, Users, Vehicles, Mechanics, Workshops, Maintenances, Integrations)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -14,35 +14,19 @@
       "key": "token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "fleetcore-secret-api-key-2026",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Auth",
+      "name": "1. Auth",
       "item": [
         {
-          "name": "Register",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Usuario Prueba\",\n  \"email\": \"usuario@prueba.com\",\n  \"password\": \"Clave1234\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
-            }
-          }
-        },
-        {
-          "name": "Login (User)",
+          "name": "Login Admin",
           "event": [
             {
               "listen": "test",
@@ -59,25 +43,16 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"usuario@prueba.com\",\n  \"password\": \"Clave1234\"\n}"
+              "raw": "{\n  \"email\": \"admin@fleetcore.com\",\n  \"password\": \"Admin12345!\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
-            }
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
           }
         },
         {
-          "name": "Login (Admin Seed)",
+          "name": "Login Technician 1",
           "event": [
             {
               "listen": "test",
@@ -94,209 +69,280 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@prueba.com\",\n  \"password\": \"Admin12345\"\n}"
+              "raw": "{\n  \"email\": \"tech1@fleetcore.com\",\n  \"password\": \"Tech12345!\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
-            }
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nuevo Técnico\",\n  \"email\": \"nuevo.tech@fleetcore.com\",\n  \"password\": \"Tech12345!\",\n  \"role\": \"TECHNICIAN\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
           }
         }
       ]
     },
     {
-      "name": "Users",
+      "name": "2. Users",
       "item": [
         {
           "name": "Get Profile (Me)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "me"]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
           }
         },
         {
-          "name": "Get All Users (Admin Only)",
+          "name": "Get All Users (Admin)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
-            }
-          }
-        },
-        {
-          "name": "Get User By ID (Admin Only)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/users/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
           }
         }
       ]
     },
     {
-      "name": "Products",
+      "name": "3. Vehicles",
       "item": [
         {
-          "name": "Get Products (Paginated & Search)",
+          "name": "List Vehicles (Paginated & Filter)",
           "request": {
             "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": {
-              "raw": "{{baseUrl}}/products?page=1&limit=10&search=",
+              "raw": "{{baseUrl}}/vehicles?page=1&limit=10&search=",
               "host": ["{{baseUrl}}"],
-              "path": ["products"],
+              "path": ["vehicles"],
               "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "search",
-                  "value": ""
-                }
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" }
               ]
             }
           }
         },
         {
-          "name": "Get Product By ID",
+          "name": "Get Vehicle by Plate or ID",
           "request": {
             "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/products/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["products", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/vehicles/AAA111", "host": ["{{baseUrl}}"], "path": ["vehicles", "AAA111"] }
           }
         },
         {
-          "name": "Create Product",
+          "name": "Create Vehicle (Admin)",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Teclado Mecánico RGB\",\n  \"description\": \"Switches Cherry MX Red\",\n  \"price\": 129.99,\n  \"stock\": 15\n}"
+              "raw": "{\n  \"plate\": \"XYZ789\",\n  \"brand\": \"Hino\",\n  \"model\": \"500 Series\",\n  \"year\": 2023,\n  \"mileage\": 15000,\n  \"status\": \"AVAILABLE\"\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/products",
-              "host": ["{{baseUrl}}"],
-              "path": ["products"]
-            }
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] }
           }
         },
         {
-          "name": "Update Product",
+          "name": "Update Vehicle (Admin)",
           "request": {
             "method": "PATCH",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"price\": 119.99,\n  \"stock\": 20\n}"
+              "raw": "{\n  \"mileage\": 16500\n}"
             },
-            "url": {
-              "raw": "{{baseUrl}}/products/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["products", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
+            "url": { "raw": "{{baseUrl}}/vehicles/XYZ789", "host": ["{{baseUrl}}"], "path": ["vehicles", "XYZ789"] }
           }
         },
         {
-          "name": "Delete Product (Soft Delete)",
+          "name": "Delete / Inactivate Vehicle (Admin)",
           "request": {
             "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/vehicles/XYZ789", "host": ["{{baseUrl}}"], "path": ["vehicles", "XYZ789"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Mechanics",
+      "item": [
+        {
+          "name": "List Mechanics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/mechanics", "host": ["{{baseUrl}}"], "path": ["mechanics"] }
+          }
+        },
+        {
+          "name": "Create Mechanic (Admin)",
+          "request": {
+            "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
-            "url": {
-              "raw": "{{baseUrl}}/products/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["products", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Luis Restrepo\",\n  \"email\": \"luis.restrepo@fleetcore.com\",\n  \"specialty\": \"Transmisiones y Cajas\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/mechanics", "host": ["{{baseUrl}}"], "path": ["mechanics"] }
+          }
+        },
+        {
+          "name": "Toggle Mechanic Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/mechanics/:id/toggle-status", "host": ["{{baseUrl}}"], "path": ["mechanics", ":id", "toggle-status"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Workshops",
+      "item": [
+        {
+          "name": "List Active Workshops",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/workshops/active", "host": ["{{baseUrl}}"], "path": ["workshops", "active"] }
+          }
+        },
+        {
+          "name": "List All Workshops",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/workshops", "host": ["{{baseUrl}}"], "path": ["workshops"] }
+          }
+        },
+        {
+          "name": "Create Workshop (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Taller Sur FleetCore\",\n  \"address\": \"Autopista Sur km 8, Itagüí\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/workshops", "host": ["{{baseUrl}}"], "path": ["workshops"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Maintenances",
+      "item": [
+        {
+          "name": "List All Maintenances",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/maintenances", "host": ["{{baseUrl}}"], "path": ["maintenances"] }
+          }
+        },
+        {
+          "name": "List Active Maintenances",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/maintenances/active", "host": ["{{baseUrl}}"], "path": ["maintenances", "active"] }
+          }
+        },
+        {
+          "name": "Get My Assigned Maintenances (Technician)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/maintenances/my-assigned", "host": ["{{baseUrl}}"], "path": ["maintenances", "my-assigned"] }
+          }
+        },
+        {
+          "name": "Create Maintenance (Admin/Manager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"ccccccc2-cccc-cccc-cccc-cccccccccccc\",\n  \"mechanicId\": \"aaaaaaa2-aaaa-aaaa-aaaa-aaaaaaaaaaaa\",\n  \"workshopId\": \"bbbbbbb1-bbbb-bbbb-bbbb-bbbbbbbbbbbb\",\n  \"type\": \"PREVENTIVE\",\n  \"description\": \"Revisión y mantenimiento preventivo\",\n  \"mileage\": 120000,\n  \"scheduledDate\": \"2026-11-05T09:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/maintenances", "host": ["{{baseUrl}}"], "path": ["maintenances"] }
+          }
+        },
+        {
+          "name": "Change Status to IN_PROGRESS",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/maintenances/:id/status", "host": ["{{baseUrl}}"], "path": ["maintenances", ":id", "status"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        },
+        {
+          "name": "Change Status to COMPLETED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\",\n  \"workDone\": \"Ajuste general, cambio de filtros y prueba en ruta\",\n  \"finalCost\": 520.00,\n  \"completedDate\": \"2026-11-05T15:00:00Z\",\n  \"finalMileage\": 120015\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/maintenances/:id/status", "host": ["{{baseUrl}}"], "path": ["maintenances", ":id", "status"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Integrations (x-api-key)",
+      "item": [
+        {
+          "name": "Get Fleet Status Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/integrations/fleet-status", "host": ["{{baseUrl}}"], "path": ["integrations", "fleet-status"] }
+          }
+        },
+        {
+          "name": "Get Active Maintenances for ERP",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/integrations/active-maintenances", "host": ["{{baseUrl}}"], "path": ["integrations", "active-maintenances"] }
           }
         }
       ]

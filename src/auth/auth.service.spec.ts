@@ -1,7 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { hash } from 'bcryptjs';
+import argon2 from 'argon2';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Role } from '../common/enums/role.enum.js';
 import { UsersService } from '../users/users.service.js';
@@ -15,8 +15,17 @@ describe('AuthService', () => {
     findByEmailWithPassword: vi.fn(),
     create: vi.fn(),
   };
-  const jwtService = { signAsync: vi.fn().mockResolvedValue('token-falso') };
-  const dto = { name: 'Ana', email: 'ana@mail.com', password: 'Clave1234' };
+
+  const jwtService = {
+    signAsync: vi.fn().mockResolvedValue('jwt-fake-token-fleetcore'),
+  };
+
+  const dto = {
+    name: 'Carlos Gómez',
+    email: 'carlos@fleetcore.com',
+    password: 'Tech12345!',
+    role: Role.TECHNICIAN,
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -27,26 +36,28 @@ describe('AuthService', () => {
         { provide: JwtService, useValue: jwtService },
       ],
     }).compile();
+
     service = moduleRef.get(AuthService);
   });
 
   describe('register', () => {
-    it('guarda la contraseña hasheada y devuelve token', async () => {
+    it('almacena la contraseña hasheada con argon2 y retorna token JWT', async () => {
       usersService.findByEmail.mockResolvedValue(null);
       usersService.create.mockImplementation(async (data: Record<string, unknown>) => ({
         id: 'u1',
-        role: Role.USER,
         ...data,
       }));
 
       const result = await service.register(dto);
-      const saved = usersService.create.mock.calls[0][0];
-      expect(saved.password).not.toBe(dto.password);
-      expect(result.accessToken).toBe('token-falso');
-      expect(result.user).not.toHaveProperty('password');
+      const savedUser = usersService.create.mock.calls[0][0];
+
+      expect(savedUser.password).not.toBe(dto.password);
+      expect(await argon2.verify(savedUser.password, dto.password)).toBe(true);
+      expect(result.accessToken).toBe('jwt-fake-token-fleetcore');
+      expect(result.user.email).toBe(dto.email);
     });
 
-    it('lanza ConflictException si el email ya existe', async () => {
+    it('lanza ConflictException si el correo electrónico ya existe', async () => {
       usersService.findByEmail.mockResolvedValue({ id: 'u1' });
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
       expect(usersService.create).not.toHaveBeenCalled();
@@ -54,38 +65,47 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('devuelve token con credenciales válidas', async () => {
+    it('retorna token JWT con credenciales válidas validadas con argon2', async () => {
+      const hashedPassword = await argon2.hash(dto.password);
       usersService.findByEmailWithPassword.mockResolvedValue({
         id: 'u1',
-        name: 'Ana',
+        name: dto.name,
         email: dto.email,
-        role: Role.USER,
-        password: await hash(dto.password, 4),
+        role: Role.TECHNICIAN,
+        password: hashedPassword,
       });
-      const result = await service.login({ email: dto.email, password: dto.password });
+
+      const result = await service.login({
+        email: dto.email,
+        password: dto.password,
+      });
+
       expect(jwtService.signAsync).toHaveBeenCalledWith({
         sub: 'u1',
         email: dto.email,
-        role: Role.USER,
+        role: Role.TECHNICIAN,
       });
-      expect(result.accessToken).toBe('token-falso');
+      expect(result.accessToken).toBe('jwt-fake-token-fleetcore');
     });
 
-    it('lanza UnauthorizedException si la contraseña no coincide', async () => {
+    it('lanza UnauthorizedException si la contraseña es incorrecta', async () => {
+      const hashedPassword = await argon2.hash('OtraContraseña123!');
       usersService.findByEmailWithPassword.mockResolvedValue({
         id: 'u1',
-        password: await hash('Otra1234', 4),
+        password: hashedPassword,
       });
-      await expect(service.login({ email: dto.email, password: dto.password })).rejects.toThrow(
-        UnauthorizedException,
-      );
+
+      await expect(
+        service.login({ email: dto.email, password: dto.password }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('lanza UnauthorizedException si el usuario no existe', async () => {
       usersService.findByEmailWithPassword.mockResolvedValue(null);
-      await expect(service.login({ email: dto.email, password: dto.password })).rejects.toThrow(
-        UnauthorizedException,
-      );
+
+      await expect(
+        service.login({ email: dto.email, password: dto.password }),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 });

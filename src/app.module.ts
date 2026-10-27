@@ -8,8 +8,12 @@ import { RolesGuard } from './common/guards/roles.guard.js';
 import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
 import { envSchema, type Env } from './config/env.schema.js';
 import { DatabaseModule } from './database/database.module.js';
-import { ProductsModule } from './products/products.module.js';
+import { IntegrationsModule } from './integrations/integrations.module.js';
+import { MaintenancesModule } from './maintenances/maintenances.module.js';
+import { MechanicsModule } from './mechanics/mechanics.module.js';
 import { UsersModule } from './users/users.module.js';
+import { VehiclesModule } from './vehicles/vehicles.module.js';
+import { WorkshopsModule } from './workshops/workshops.module.js';
 
 @Module({
   imports: [
@@ -34,7 +38,11 @@ import { UsersModule } from './users/users.module.js';
     }),
     UsersModule,
     AuthModule,
-    ProductsModule,
+    VehiclesModule,
+    MechanicsModule,
+    WorkshopsModule,
+    MaintenancesModule,
+    IntegrationsModule,
     DatabaseModule,
   ],
   providers: [

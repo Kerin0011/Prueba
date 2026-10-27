@@ -6,7 +6,10 @@ import { User } from './entities/user.entity.js';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private readonly usersRepo: Repository<User>) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>,
+  ) {}
 
   create(data: { name: string; email: string; password: string; role?: Role }) {
     return this.usersRepo.save(this.usersRepo.create(data));
@@ -28,8 +31,13 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`Usuario ${id} no encontrado`);
+    const user = await this.usersRepo.findOne({
+      where: { id },
+      relations: { mechanic: true },
+    });
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
     return user;
   }
 }
