@@ -9,7 +9,7 @@
 
 ## 1. Descripción del Caso de Uso
 
-La empresa de transporte **FleetCore** requiere un sistema robusto para administrar el ciclo de vida de los mantenimientos de su flota de vehículos. Esta solución elimina los registros manuales y hojas de cálculo mediante una API REST en **NestJS 12**, **TypeORM**, **PostgreSQL 17**, autenticación **JWT** con **Argon2**, validación mediante **Zod** y **class-validator**, control de acceso basado en roles (**RBAC**), integración externa protegida por **API Key**, y tests automatizados con **Vitest**.
+La empresa de transporte **FleetCore** requiere un sistema robusto para administrar el ciclo de vida de los mantenimientos de su flota de vehículos. Esta solución elimina los registros manuales y hojas de cálculo mediante una API REST en **NestJS 12**, **TypeORM**, **PostgreSQL 17**, autenticación **JWT** con **bcryptjs**, validación mediante **Zod** y **class-validator**, control de acceso basado en roles (**RBAC** con roles `ADMIN` y `TECHNICIAN`), integración externa protegida por **API Key**, y tests automatizados con **Vitest**.
 
 ---
 
@@ -19,7 +19,8 @@ La empresa de transporte **FleetCore** requiere un sistema robusto para administ
 - **Persistencia:** PostgreSQL 17 con TypeORM.
 - **Autenticación & Seguridad:**
   - JWT con `@nestjs/jwt`.
-  - Hashing seguro de contraseñas con **Argon2** (`argon2id`).
+  - Hashing seguro de contraseñas con **bcryptjs**.
+  - Roles soportados: **ADMIN** y **TECHNICIAN**.
   - Guards globales (`JwtAuthGuard`, `RolesGuard`) y decoradores personalizados (`@Public()`, `@Roles()`, `@CurrentUser()`).
   - Autenticación con cabecera `x-api-key` para sistemas externos (`ApiKeyGuard`).
   - `helmet` y CORS configurados.
@@ -27,7 +28,7 @@ La empresa de transporte **FleetCore** requiere un sistema robusto para administ
   - Validación de `.env` en tiempo de arranque con **Zod** (`envSchema`).
   - DTOs tipados y validados con `class-validator` y `class-transformer`.
 - **Documentación:** Swagger UI interactivo en `/docs`.
-- **Testing:** Vitest con cobertura de código (`npm run test:cov`).
+- **Testing:** Vitest con reporte de cobertura (`npm run test:cov`).
 - **Contenedores:** Docker Compose con dos bases de datos (desarrollo y pruebas).
 
 ---
@@ -52,7 +53,6 @@ cd Prueba
 ```bash
 cp .env.example .env
 ```
-*(El archivo `.env` ya incluye valores predeterminados para desarrollo).*
 
 ### Paso 3: Iniciar las bases de datos con Docker
 ```bash
@@ -67,11 +67,9 @@ npm install
 ```
 
 ### Paso 5: Ejecutar el Seeder de datos iniciales
-Puedes poblar la base de datos ejecutando:
 ```bash
 npm run seed
 ```
-*(Nota: El seeder también se ejecuta automáticamente en el bootstrap de la app si los datos no existen).*
 
 ### Paso 6: Iniciar la aplicación
 ```bash
@@ -116,47 +114,15 @@ El sistema viene poblado con usuarios, mecánicos, talleres y vehículos inicial
 
 ---
 
-## 6. Reglas de Negocio Implementadas
-
-1. **Gestión de Vehículos**:
-   - Placas únicas en mayúsculas.
-   - Estados: `AVAILABLE`, `IN_MAINTENANCE`, `INACTIVE`.
-   - Vehículos en estado `INACTIVE` no pueden ser asociados a nuevos mantenimientos.
-   - Búsqueda por UUID o por placa en el mismo endpoint (`/api/vehicles/:term`).
-2. **Gestión de Mecánicos y Concurrencia de Horarios**:
-   - Mecánicos inactivos no pueden ser asignados a mantenimientos.
-   - Un mecánico no puede tener dos mantenimientos activos (`SCHEDULED` o `IN_PROGRESS`) simultáneamente.
-3. **Gestión de Talleres**:
-   - Solo talleres en estado `ACTIVE` pueden recibir nuevos mantenimientos.
-4. **Ciclo de Vida del Mantenimiento y Transiciones**:
-   - Todo mantenimiento inicia en `SCHEDULED`.
-   - El kilometraje inicial del mantenimiento no puede ser inferior al actual del vehículo.
-   - Al pasar a `IN_PROGRESS`, el vehículo cambia automáticamente a `IN_MAINTENANCE`.
-   - Para pasar a `COMPLETED` es obligatorio registrar: `workDone`, `finalCost`, `completedDate` y `finalMileage` (mayor o igual al inicial).
-   - Al completarse, el vehículo pasa a `AVAILABLE` y su kilometraje se actualiza al `finalMileage`.
-   - Mantenimientos `COMPLETED` o `CANCELLED` no pueden regresar a ningún estado anterior.
-   - Si se cancela un mantenimiento en progreso, el vehículo regresa a `AVAILABLE`.
-
----
-
-## 7. Pruebas Automatizadas (Vitest)
-
-Ejecuta las pruebas unitarias y de cobertura:
+## 6. Pruebas Automatizadas (Vitest)
 
 ```bash
 # Pruebas unitarias
 npm run test
 
-# Pruebas con reporte de cobertura (>70% de cobertura en servicios clave)
+# Pruebas con reporte de cobertura
 npm run test:cov
 
 # Pruebas e2e (con base de datos de test en puerto 5434)
 npm run test:e2e
 ```
-
----
-
-## 8. Colección de Postman y Dump SQL
-
-- **Colección de Postman:** [`postman_collection.json`](file:///D:/simulacro/postman_collection.json) lista para importar con variables preconfiguradas y tests automáticos de extracción de token JWT.
-- **Dump de Base de Datos:** [`dump.sql`](file:///D:/simulacro/dump.sql) con la estructura completa de tablas, tipos enumerados, índices y datos iniciales en PostgreSQL.

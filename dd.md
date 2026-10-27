@@ -34,9 +34,8 @@ Requisitos:
 1. La aplicación deberá permitir el registro de usuarios con los siguientes roles: 
 a. ADMIN 
 b. TECHNICIAN 
-c. MANAGER 
 2. La aplicación deberá permitir el inicio de sesión mediante correo electrónico y contraseña. 
-3. Las contraseñas deberán almacenarse de forma segura utilizando un mecanismo de hashing. usa argon2 para el hashing. 
+3. Las contraseñas deberán almacenarse de forma segura utilizando un mecanismo de hashing. 
 4. Después de una autenticación exitosa, la aplicación deberá generar un JSON Web Token 
 (JWT). 
 5. Las rutas privadas deberán estar protegidas mediante Guards de NestJS. 

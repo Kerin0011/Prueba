@@ -18,15 +18,15 @@ export class UsersController {
     return this.usersService.findOne(userId);
   }
 
-  @Auth(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Listar todos los usuarios (Admin/Manager)' })
+  @Auth(Role.ADMIN)
+  @ApiOperation({ summary: 'Listar todos los usuarios (Admin)' })
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
-  @Auth(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Obtener un usuario por ID (Admin/Manager)' })
+  @Auth(Role.ADMIN)
+  @ApiOperation({ summary: 'Obtener un usuario por ID (Admin)' })
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);

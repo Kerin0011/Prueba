@@ -47,7 +47,7 @@
             "bearer": []
           }
         ],
-        "summary": "Listar todos los usuarios (Admin/Manager)",
+        "summary": "Listar todos los usuarios (Admin)",
         "tags": [
           "users"
         ]
@@ -82,7 +82,7 @@
             "bearer": []
           }
         ],
-        "summary": "Obtener un usuario por ID (Admin/Manager)",
+        "summary": "Obtener un usuario por ID (Admin)",
         "tags": [
           "users"
         ]
@@ -832,7 +832,7 @@
             "bearer": []
           }
         ],
-        "summary": "Crear un nuevo mantenimiento para un vehículo (Admin/Manager)",
+        "summary": "Crear un nuevo mantenimiento para un vehículo (Admin)",
         "tags": [
           "maintenances"
         ]
@@ -1218,8 +1218,7 @@
             "type": "string",
             "enum": [
               "ADMIN",
-              "TECHNICIAN",
-              "MANAGER"
+              "TECHNICIAN"
             ],
             "default": "TECHNICIAN"
           }

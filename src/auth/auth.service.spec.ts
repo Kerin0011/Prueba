@@ -1,7 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import argon2 from 'argon2';
+import { compare, hash } from 'bcryptjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Role } from '../common/enums/role.enum.js';
 import { UsersService } from '../users/users.service.js';
@@ -41,7 +41,7 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    it('almacena la contraseña hasheada con argon2 y retorna token JWT', async () => {
+    it('almacena la contraseña hasheada y retorna token JWT', async () => {
       usersService.findByEmail.mockResolvedValue(null);
       usersService.create.mockImplementation(async (data: Record<string, unknown>) => ({
         id: 'u1',
@@ -52,7 +52,7 @@ describe('AuthService', () => {
       const savedUser = usersService.create.mock.calls[0][0];
 
       expect(savedUser.password).not.toBe(dto.password);
-      expect(await argon2.verify(savedUser.password, dto.password)).toBe(true);
+      expect(await compare(dto.password, savedUser.password)).toBe(true);
       expect(result.accessToken).toBe('jwt-fake-token-fleetcore');
       expect(result.user.email).toBe(dto.email);
     });
@@ -65,8 +65,8 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('retorna token JWT con credenciales válidas validadas con argon2', async () => {
-      const hashedPassword = await argon2.hash(dto.password);
+    it('retorna token JWT con credenciales válidas validadas con bcryptjs', async () => {
+      const hashedPassword = await hash(dto.password, 4);
       usersService.findByEmailWithPassword.mockResolvedValue({
         id: 'u1',
         name: dto.name,
@@ -89,7 +89,7 @@ describe('AuthService', () => {
     });
 
     it('lanza UnauthorizedException si la contraseña es incorrecta', async () => {
-      const hashedPassword = await argon2.hash('OtraContraseña123!');
+      const hashedPassword = await hash('OtraContraseña123!', 4);
       usersService.findByEmailWithPassword.mockResolvedValue({
         id: 'u1',
         password: hashedPassword,

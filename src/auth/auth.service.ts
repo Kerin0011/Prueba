@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import argon2 from 'argon2';
+import { compare, hash } from 'bcryptjs';
 import type { JwtPayload } from '../common/interfaces/jwt-payload.interface.js';
 import type { User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
@@ -19,7 +19,7 @@ export class AuthService {
       throw new ConflictException('El correo electrónico ya se encuentra registrado');
     }
 
-    const hashedPassword = await argon2.hash(dto.password);
+    const hashedPassword = await hash(dto.password, 10);
     const user = await this.usersService.create({
       ...dto,
       password: hashedPassword,
@@ -34,7 +34,7 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const isPasswordValid = await argon2.verify(user.password, dto.password);
+    const isPasswordValid = await compare(dto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales inválidas');
     }

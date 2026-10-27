@@ -37,7 +37,7 @@ export class RegisterDto {
 
   @ApiPropertyOptional({ enum: Role, default: Role.TECHNICIAN })
   @IsOptional()
-  @IsEnum(Role, { message: 'El rol debe ser ADMIN, TECHNICIAN o MANAGER' })
+  @IsEnum(Role, { message: 'El rol debe ser ADMIN o TECHNICIAN' })
   role?: Role;
 }
 

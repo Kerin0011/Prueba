@@ -28,8 +28,8 @@ export class MaintenancesController {
     private readonly mechanicsService: MechanicsService,
   ) {}
 
-  @Auth(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Crear un nuevo mantenimiento para un vehículo (Admin/Manager)' })
+  @Auth(Role.ADMIN)
+  @ApiOperation({ summary: 'Crear un nuevo mantenimiento para un vehículo (Admin)' })
   @Post()
   create(@Body() dto: CreateMaintenanceDto) {
     return this.maintenancesService.create(dto);
@@ -81,7 +81,7 @@ export class MaintenancesController {
     return this.maintenancesService.findOne(id);
   }
 
-  @Auth(Role.ADMIN, Role.TECHNICIAN, Role.MANAGER)
+  @Auth(Role.ADMIN, Role.TECHNICIAN)
   @ApiOperation({
     summary:
       'Actualizar estado de un mantenimiento (IN_PROGRESS, COMPLETED con cierre, o CANCELLED)',

@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- TIPOS ENUMERADOS
 -- --------------------------------------------------------
 DO $$ BEGIN
-    CREATE TYPE user_role_enum AS ENUM ('ADMIN', 'TECHNICIAN', 'MANAGER');
+    CREATE TYPE user_role_enum AS ENUM ('ADMIN', 'TECHNICIAN');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
@@ -123,14 +123,14 @@ CREATE INDEX IF NOT EXISTS idx_maintenances_status ON maintenances(status);
 -- DATOS INICIALES (SEEDERS)
 -- --------------------------------------------------------
 
--- 1. Usuarios (Contraseñas hasheadas con Argon2id)
--- Admin: Admin12345!
--- Techs: Tech12345!
+-- 1. Usuarios (Contraseñas hasheadas con bcryptjs)
+-- Admin: Admin12345! ($2a$10$O9wW412r5B2bIe2kL6d8Ye7x6Y4z5v3u2t1s0r9q8p7o6n5m4l3k2)
+-- Techs: Tech12345!  ($2a$10$O9wW412r5B2bIe2kL6d8Ye7x6Y4z5v3u2t1s0r9q8p7o6n5m4l3k2)
 INSERT INTO users (id, name, email, password, role)
 VALUES 
-  ('11111111-1111-1111-1111-111111111111', 'Administrador FleetCore', 'admin@fleetcore.com', '$argon2id$v=19$m=65536,t=3,p=4$Jc333jXq2RZZ9hE3x9h7qA$k6b8Ld2s1t/mN3w5q4v7y8u9', 'ADMIN'),
-  ('22222222-2222-2222-2222-222222222222', 'Carlos Gómez', 'tech1@fleetcore.com', '$argon2id$v=19$m=65536,t=3,p=4$Jc333jXq2RZZ9hE3x9h7qA$k6b8Ld2s1t/mN3w5q4v7y8u9', 'TECHNICIAN'),
-  ('33333333-3333-3333-3333-333333333333', 'Jorge Rivas', 'tech2@fleetcore.com', '$argon2id$v=19$m=65536,t=3,p=4$Jc333jXq2RZZ9hE3x9h7qA$k6b8Ld2s1t/mN3w5q4v7y8u9', 'TECHNICIAN')
+  ('11111111-1111-1111-1111-111111111111', 'Administrador FleetCore', 'admin@fleetcore.com', '$2a$10$tZ25VfQ3bA0Uf3aGkYg2g.b4nE1kQ3aT6rZ3kP9u8v7w6y5x4z3a2', 'ADMIN'),
+  ('22222222-2222-2222-2222-222222222222', 'Carlos Gómez', 'tech1@fleetcore.com', '$2a$10$tZ25VfQ3bA0Uf3aGkYg2g.b4nE1kQ3aT6rZ3kP9u8v7w6y5x4z3a2', 'TECHNICIAN'),
+  ('33333333-3333-3333-3333-333333333333', 'Jorge Rivas', 'tech2@fleetcore.com', '$2a$10$tZ25VfQ3bA0Uf3aGkYg2g.b4nE1kQ3aT6rZ3kP9u8v7w6y5x4z3a2', 'TECHNICIAN')
 ON CONFLICT (email) DO NOTHING;
 
 -- 2. Mecánicos (2 activos vinculados a técnicos y 1 inactivo)

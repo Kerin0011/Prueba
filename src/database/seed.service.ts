@@ -1,7 +1,7 @@
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import argon2 from 'argon2';
+import { hash } from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { MaintenanceStatus } from '../common/enums/maintenance-status.enum.js';
 import { MaintenanceType } from '../common/enums/maintenance-type.enum.js';
@@ -51,7 +51,7 @@ export class SeedService implements OnApplicationBootstrap {
         this.userRepo.create({
           name: 'Administrador FleetCore',
           email: adminEmail,
-          password: await argon2.hash(adminPassword),
+          password: await hash(adminPassword, 10),
           role: Role.ADMIN,
         }),
       );
@@ -64,7 +64,7 @@ export class SeedService implements OnApplicationBootstrap {
         this.userRepo.create({
           name: 'Carlos Gómez',
           email: 'tech1@fleetcore.com',
-          password: await argon2.hash('Tech12345!'),
+          password: await hash('Tech12345!', 10),
           role: Role.TECHNICIAN,
         }),
       );
@@ -77,7 +77,7 @@ export class SeedService implements OnApplicationBootstrap {
         this.userRepo.create({
           name: 'Jorge Rivas',
           email: 'tech2@fleetcore.com',
-          password: await argon2.hash('Tech12345!'),
+          password: await hash('Tech12345!', 10),
           role: Role.TECHNICIAN,
         }),
       );
